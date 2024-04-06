@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch: {}
+
+env:
+  # update with the name of the main binary
+  add_binaries_to_github_release: github.ref_type == 'tag' && github.ref_name && true
+  release_version: ${{ (github.ref_type == 'tag' && github.ref_name) || format('{0}_{1}', github.ref_name, github.run_number) }}
+
+concurrency:
+  group: release
+  cancel-in-progress: true
+
+jobs:
+  setup-build-name:
+    outputs:
+      binary: ${{ steps.setup-build-name.outputs.BIN }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - id: setup-build-name
+        run: |
+          NAME=$( sed -n 's/^name = "\(.*\)"/\1/p' < ./game_client/Cargo.toml )
+          echo "binary: _$NAME_"
+          echo "BIN=$NAME" >> $GITHUB_OUTPUT
+
+  # Build for wasm
+  release-wasm:
+    runs-on: ubuntu-latest
+    needs: setup-build-name
+
+    steps:
+      - run: |
+          echo "Binary is ${{ needs.setup-build-name.outputs.binary}}"
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev alsa
+
+      - name: binstall
+        run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+      - name: wasm-bindgen-cli
+        run: cargo binstall -y wasm-bindgen-cli
+
+      - name: Build
+        run: |
+          chmod +x ./web-build.sh
+          ./web-build.sh
+
+      - name: Package as a zip
+        working-directory: ./dist
+        run: |
+          zip --recurse-paths ../${{ needs.setup-build-name.outputs.binary}}.zip .
+
+      - name: Upload binaries to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ needs.setup-build-name.outputs.binary}}.zip
+          name: wasm
+
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "dist/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./dist
+
+      - name: Upload binaries to release
+        if: ${{ env.add_binaries_to_github_release == 'true' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ needs.setup-build-name.outputs.binary}}.zip
+          asset_name: ${{ needs.setup-build-name.outputs.binary}}-wasm-${{ env.release_version }}.zip
+          tag: ${{ env.release_version }}
+          overwrite: true
+
+  upload-to-github:
+    runs-on: ubuntu-latest
+    needs: release-wasm
+
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to Github Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+        with:
+          artifact_name: github-pages
