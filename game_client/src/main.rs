@@ -14,12 +14,12 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     // circular base
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Circle::new(4.0)),
-        material: materials.add(Color::WHITE),
-        transform: Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
+    commands.spawn(SceneBundle {
+        scene: asset_server.load("kenney-hexagon-kit/GLB format/sand.glb#Scene0"),
+        transform: Transform::from_xyz(0.0, -0.5, 0.0).with_scale(Vec3::splat(2.)),
         ..default()
     });
     // cube
