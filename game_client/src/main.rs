@@ -18,7 +18,7 @@ fn setup(
 ) {
     // circular base
     commands.spawn(SceneBundle {
-        scene: asset_server.load("kenney-hexagon-kit/GLB format/sand.glb#Scene0"),
+        scene: asset_server.load("client_assets/kenney-hexagon-kit/GLB format/sand.glb#Scene0"),
         transform: Transform::from_xyz(0.0, -0.5, 0.0).with_scale(Vec3::splat(2.)),
         ..default()
     });
