@@ -11,7 +11,7 @@ The experiment will be set up to include a few different approaches, along with 
 - Server Authoratative - Dedicated: same as above, but runs on a persistant, dedicated host (or hosts)
 - Server Side Rendering + Video Stream
 
-The game itself is just going to be a controllable swarm simulation - each play will be able to move their swarms around, and all player's should see the same movement being replicated across. The swarms should act deterministically, and the client should run in browser.
+The game itself is just going to be a controllable swarm simulation - each player will be able to move their swarms around, and all player's should see the same movement being replicated across. The swarms should act deterministically, and the client should run in browser.
 
 ## Licenses
 The project is licensed under both MIT and Apache 2. For details please look at the LICENSES folder.
