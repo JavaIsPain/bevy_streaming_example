@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 bevy = { workspace = true }
 hexx = { version = "0.17", features = ["serde"] }
+bevy_ggrs = { workspace = true }

@@ -3,3 +3,7 @@ members = [ "game_client","game_server_logic"]
 
 [workspace.dependencies]
 bevy = "0.13"
+bevy_ggrs = { version = "0.15", features = ["wasm-bindgen"] }
+
+[profile.dev.package."*"]
+opt-level = 2
