@@ -3,7 +3,7 @@
 {
 	"name": "Ubuntu",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:jammy",
+	"image": "rust:bookworm",
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/apt-get-packages": {
 			"packages": "g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0  libwayland-dev libxkbcommon-dev"
